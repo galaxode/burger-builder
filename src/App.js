@@ -11,9 +11,9 @@ class App extends Component {
     return (
       <div>
         <Layout>
-          <Route path='/checkout' component={Checkout} />
-          <Route path='/orders' component={Orders} />
-          <Route path='/' exact component={BurgerBuilder} />
+          <Route path='/checkout' component={props => <Checkout {...props} />} />
+          <Route path='/orders' component={props => <Orders {...props}/>} />
+          <Route path='/' exact component={props => <BurgerBuilder {...props}/>} />
         </Layout>
       </div>
     );
