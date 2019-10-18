@@ -8,8 +8,7 @@ import OrderSummary from '../../components/Burger/OrderSummary/OrderSummary';
 import axios from '../../axios-orders';
 import Spinner from '../../components/UI/Spinner/Spinner';
 import withErrorHandler from '../../hoc/withErrorHandler/withErrorHandler';
-import * as actionTypes from '../../store/actions';
-
+import * as actions from '../../store/actions';
 
 class BurgerBuilder extends Component {
   // constructor(props) {
@@ -17,23 +16,15 @@ class BurgerBuilder extends Component {
   //   this.state = { ... };
   // }
   state = {
-    purchasable: false,
     purchasing: false,
-    loading: false,
-    error: false
+    loading: false
   }
 
   componentDidMount() {
-    // axios.get('ingredients.json')
-    //   .then(response => {
-    //     this.setState({ingredients: response.data});
-    //   })
-    //   .then(error => {
-    //     this.setState({error: true});
-    //   });
+    this.props.getIngredients();
   }
 
-  updatePurchaseState(ingredients) {
+  getIsPurchasable(ingredients) {
     const sum = Object.keys(ingredients)
       .map(igKey => {
         return ingredients[igKey];
@@ -83,6 +74,7 @@ class BurgerBuilder extends Component {
   }
 
   continuePurchaseHandler = () => {
+    this.props.initCheckout();
     this.props.history.push('/checkout')
   }
 
@@ -95,7 +87,7 @@ class BurgerBuilder extends Component {
       disabledInfo[key] = disabledInfo[key] === 0;
     }
 
-    let burger = this.state.error ?
+    let burger = this.props.error ?
       <p style={{textAlign: 'center'}}>Ingredients cannot be loaded from server.</p>
       :
       <Spinner />;
@@ -110,7 +102,7 @@ class BurgerBuilder extends Component {
             ingredientRemoved={this.props.onIngredientRemoved}
             disabled={disabledInfo}
             price={this.props.price}
-            purchasable={this.updatePurchaseState(this.props.ings)}
+            purchasable={this.getIsPurchasable(this.props.ings)}
             purchaseHandler={this.purchaseHandler} />
         </Fragment>
       );
@@ -124,9 +116,9 @@ class BurgerBuilder extends Component {
       );
     }
 
-    if (this.state.loading) {
-      orderSummary = <Spinner />
-    }
+    // if (this.state.loading) {
+    //   orderSummary = <Spinner />
+    // }
 
     return (
       <Fragment>
@@ -143,15 +135,18 @@ class BurgerBuilder extends Component {
 
 const mapStateToProps = state => {
   return {
-    ings: state.ingredients,
-    price: state.totalPrice
+    ings: state.burgerBuilder.ingredients,
+    price: state.burgerBuilder.totalPrice,
+    error: state.burgerBuilder.error
   };
 }
 
 const mapDispatchToProps = dispatch => {
   return {
-    onIngredientAdded: ingredientName => dispatch({type: actionTypes.ADD_INGREDIENT, ingredientName}),
-    onIngredientRemoved: ingredientName => dispatch({type: actionTypes.REMOVE_INGREDIENT, ingredientName}),
+    onIngredientAdded: ingredientName => dispatch(actions.addIngredient(ingredientName)),
+    onIngredientRemoved: ingredientName => dispatch(actions.removeIngredient(ingredientName)),
+    getIngredients: () => dispatch(actions.initIngredients()),
+    initCheckout: () => dispatch(actions.checkoutInit())
   };
 }
 
